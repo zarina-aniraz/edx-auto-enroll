@@ -4,7 +4,7 @@ import webbrowser
 from pykeyboard import PyKeyboard
 from six.moves import html_parser
 import string
-
+import re
 
 def log_in():
 	sign_in_url="https://courses.edx.org/login"
@@ -53,11 +53,13 @@ def auto_enroll(driver, course_category):
 
 	courses = driver.find_elements_by_class_name("course-link")
 
+	time.sleep(5)
 	
 	course_urls=[] # all retreived courses
 	for course in courses:
 		course_url=course.get_attribute("href")
 		course_urls.append(course_url);
+
 
 	count=0
 	print ("Total number of courses: {0}".format(len(course_urls)))
@@ -71,15 +73,25 @@ def auto_enroll(driver, course_category):
 
 		try:
 			time.sleep(1)
+			#link_to_enroll is in the following format:
+			#https://courses.edx.org/register?course_id=course-v1%3AGTx%2BMGT1000%2B1T2018&enrollment_action=enroll&email_opt_in=false
 			link_to_enroll=driver.find_element_by_class_name("js-enroll-btn ").get_attribute("href")#btn btn-cta txt-center js-enroll-btn
 			link_to_enroll=link_to_enroll.replace("email_opt_in=true", "email_opt_in=false")
 			print(link_to_enroll)
+
+			#course_link is needed as an input for crawler
+			#course_link is the following format
+			#https://courses.edx.org/courses/course-v1%3AGTx%2BMGT1000%2B1T2018/course/
+			course_id=re.search('course_id=(.*)&enrollment_action', link_to_enroll).group(1)
+			course_link="https://courses.edx.org/courses/"+course_id+"/course/"
 			course_title=driver.find_element_by_class_name("course-intro-heading").text
 			print (course_title)
 			course_title=clean_filename(course_title)
-			file_course_categ.write('{0:80}  {1}\n'.format(course_title, course_category))	
+			file_course_categ.write('{0:80}  {1:40} {2}\n'.format(course_title, course_category, course_link))
+
 			# Open URL in a new tab, if a browser window is already open.
 			webbrowser.open(link_to_enroll)
+
 			time.sleep(10)
 			#keyboard.send('ctrl+w')
 			keyboard = PyKeyboard()
