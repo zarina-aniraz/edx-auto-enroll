@@ -4,6 +4,7 @@ import webbrowser
 from pykeyboard import PyKeyboard
 from six.moves import html_parser
 import string
+import re
 
 
 def log_in():
@@ -69,15 +70,25 @@ def auto_enroll(driver, course_category):
 
 		try:
 			time.sleep(1)
+			#link_to_enroll is in the following format:
+			#https://courses.edx.org/register?course_id=course-v1%3AGTx%2BMGT1000%2B1T2018&enrollment_action=enroll&email_opt_in=false
 			link_to_enroll=driver.find_element_by_class_name("js-enroll-btn ").get_attribute("href")#btn btn-cta txt-center js-enroll-btn
 			link_to_enroll=link_to_enroll.replace("email_opt_in=true", "email_opt_in=false")
 			print(link_to_enroll)
+
+			#course_link is needed as an input for crawler
+			#course_link is the following format
+			#https://courses.edx.org/courses/course-v1%3AGTx%2BMGT1000%2B1T2018/course/
+			course_id=re.search('course_id=(.*)&enrollment_action', link_to_enroll).group(1)
+			course_link="https://courses.edx.org/courses/"+course_id+"/course/"
 			course_title=driver.find_element_by_class_name("course-intro-heading").text
 			print (course_title)
 			course_title=clean_filename(course_title)
-			file_course_categ.write('{0:80}  {1}\n'.format(course_title, course_category))	
+			file_course_categ.write('{0:80}  {1:40} {2}\n'.format(course_title, course_category, course_link))
+
 			# Open URL in a new tab, if a browser window is already open.
 			webbrowser.open(link_to_enroll)
+
 			time.sleep(10)
 			# To Create an ctrl_key+w combo for Linux
 			keyboard = PyKeyboard()
@@ -127,9 +138,9 @@ def main():
 	driver = webdriver.Chrome(executable_path=chromedriver_loc)
 	#log_in()
 	#category name same as in the search
-	categs=["Business & Management", "Computer Science"]
+	categs=["Business & Management", "Computer Science", "Humanities"]
 	course_category="Business & Management"
-	auto_enroll(driver, categs[1])
+	auto_enroll(driver, categs[2])
 
 
 if __name__== "__main__":
