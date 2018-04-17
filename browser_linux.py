@@ -5,6 +5,7 @@ from pykeyboard import PyKeyboard
 from six.moves import html_parser
 import string
 import re
+import urllib.parse
 
 
 def log_in():
@@ -44,7 +45,7 @@ def scroll(driver):
 
 def auto_enroll(driver, course_category):
 
-	url = "https://www.edx.org/course?subject="+course_category+"&availability=archived&language=English"
+	url = "https://www.edx.org/course?subject="+urllib.parse.quote(course_category,safe='')+"&availability=archived&language=English"
 	driver.get(url) #navigate to the page
 
 	#scroll down the page to retrive all courses
@@ -139,8 +140,8 @@ def main():
 	#log_in()
 	#category name same as in the search
 	categs=["Business & Management", "Computer Science", "Humanities"]
-	course_category="Business & Management"
-	auto_enroll(driver, categs[2])
+	for c in categs:
+		auto_enroll(driver, c)
 
 
 if __name__== "__main__":
